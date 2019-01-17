@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>センサからの信号受信</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.16/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.16/addons/p5.sound.min.js"></script>
+      
+  </head>
+
+  <!-- 1. ここにP5.jsを読み込む -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
+
+  <body>
+  <h1>スマホからのセンサ情報を受信</h1>  
+  <div>
+    <div>あなたのID: <span id="myid"></span></div>
+    <div>ルームID: <span id="room"></span></div>
+    <div>受信した情報はコンソールログで確認してください</div>
+  </div>
+  <script>
+    let room = "s1316258";
+    let socket = io.connect('https://qa.fujimura.com');    
+    let myid; 
+    
+    document.querySelector("#room").innerHTML = room;
+    socket.on('mylogin', function(data) {
+      myid = data;
+      socket.emit('join', room); // 受信room IDを指定
+      document.querySelector("#myid").innerHTML = myid;
+      console.log("あなたのID: ", myid);
+    });
+            
+    socket.on('sensor', function(data) {
+      speedX = 0.1*parseFloat(data.g);
+      speedY = 0.1*parseFloat(data.b); 
+    console.log(data);
+    });
+    
+    let x = 0;
+    let y = 0;
+    let speedX = 0;
+    let speedY = 0;
+    let cat;
+    let fish;
+    let song;
+
+    
+    function preload() {
+      cat = loadImage("mycat.png");
+      fish = loadImage("fish.png");
+      sound = loadSound('song1.mp3');
+    }
+    
+    function setup() {
+      createCanvas(640,480);
+      background(100);
+      x= width / 2;
+      y= height / 2;
+      targetX= random(width);
+      targetY= random(height);
+      a= 0;
+      image(fish,targetX,targetY,80, 50);
+    }
+    
+    function draw() {
+      //background(200);
+      x = x + speedX;
+      y = y + speedY;
+      if (x>width-50) x = width-50;
+      if (x<0) x = 0;
+      if (y>height-50) y = height-50;
+      if (y<0) y = 0;
+        
+    
+      let distance = Math.sqrt(Math.pow(x-2-targetX,2)+Math.pow(y-2-targetY,2));
+      console.log(distance);
+        
+      if(distance<50)
+      {
+          background(100);
+          targetX= random(width-50);
+          targetY= random(height-50);
+          image(fish,targetX,targetY,80, 50);
+          sound.play();
+          a= a+1;
+      }
+        if(a>10)
+            {
+                alert("リセット");
+                location.href = 'http://ch-www2.ad.otsuma.ac.jp/~s1316258/wp2/animation.html';
+            }
+        image(cat,x,y,50, 50);
+    }
+  </script>
+    
+</body>
+</html>
